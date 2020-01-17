@@ -2,10 +2,5 @@
     <string name="app_name">Herence</string>
     <string name="title_activity_listen">My Records</string>
     <string name="title_activity_Friends">Friends</string>
-    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
-
-    <!-- Change the following strings as required -->
-    <string name="back4app_app_id">k0fzAIpVEWQfajpaeVu3N8eMZWDyi5iGPGivzVG9</string>
-    <string name="back4app_client_key">id957lGt1XAnWruRVy9Tb5TKRxaR27XrVW2k5fDu</string>
     <string name="title_activity_friend_list">FriendList</string>
 </resources>

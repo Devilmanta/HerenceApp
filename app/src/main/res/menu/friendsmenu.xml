@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/friendsMenu">
+    <item android:title="Add Friend" android:id="@+id/addFriend"/>
+    <item android:title="Create Group" android:id="@+id/createGroup"/>
+</menu>

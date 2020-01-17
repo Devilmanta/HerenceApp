@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1088114998502",
+    "firebase_url": "https://herenceapp.firebaseio.com",
+    "project_id": "herenceapp",
+    "storage_bucket": "herenceapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088114998502:android:5e01184a315bbf9ba2cf27",
+        "android_client_info": {
+          "package_name": "com.example.herence"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1088114998502-08ksgsfmb1qm001iosl7vua9epn63s54.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.herence",
+            "certificate_hash": "3a0d522b6ba1ff9727c2ae939b2286e365f395f2"
+          }
+        },
+        {
+          "client_id": "1088114998502-0alcc6lqc8obsplus19g1cbj4aecllbo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDggVDBak_QiN3PPrOvAQ3exoAlUnoPCNE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1088114998502-0alcc6lqc8obsplus19g1cbj4aecllbo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

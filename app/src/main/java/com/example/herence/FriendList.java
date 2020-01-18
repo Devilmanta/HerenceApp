@@ -3,6 +3,8 @@ package com.example.herence;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -12,6 +14,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.parse.ParseException;
 
 import androidx.annotation.NonNull;
@@ -53,22 +58,23 @@ public class FriendList extends AppCompatActivity {
         setSupportActionBar(toolbar);
         friendList = findViewById(R.id.listViewFriendList);
         friendListArray = new ArrayList<>();
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        currentUser = firebaseUser.getDisplayName();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String firstname = String.valueOf(dataSnapshot.child("EX4iGCMi1BmrLvRJaFRd").child("firstname"));
-                Log.i("Firstname", firstname);
-            }
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("DOCUMENT_ID", document.getId() + " => " + document.getData() + " " + document.get("firstname"));
+                            }
+                        } else {
+                            Log.w("DATABASE_ERROR", "Error getting documents.", task.getException());
+                        }
+                    }
+                });
 
         if(getIntent().getExtras() != null){
             hasRecord = true;

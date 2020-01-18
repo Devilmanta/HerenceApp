@@ -66,7 +66,6 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
     private final int maxRecordCount = 3;
     private int idControl;
     private CountDownTimer cdt = null;
-    private ParseJobs parseJobs = null;
     private String loggedOnUser = null;
     private int recordCount;
     private String record = "Record";
@@ -158,117 +157,6 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                    }
                }
            });
-/*
-        setContentView(R.layout.activity_listen);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        recording = false;
-        playing = false;
-        idControl = 0;
-        pll = findViewById(R.id.linearLayout);
-        prefix = getExternalCacheDir().getAbsolutePath() + "/";
-        suffix = ".3gp";
-        parseJobs = new ParseJobs();
-        loggedOnUser = ParseUser.getCurrentUser().getUsername().toString();
-        userRecordCount = parseJobs.getOnlineRecordCount();
-        fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    // Permission is not granted
-                    ActivityCompat.requestPermissions(listen.this,
-                            new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-                } else {
-                    //Make the recordings !!!HERE!!!
-                    fullPath = prefix + loggedOnUser + String.valueOf(userRecordCount) + suffix;
-                    if (userRecordCount < maxRecordCount) {
-                        if (!recording) {
-                            fab.setImageResource(R.drawable.stop96);
-                            startRecording(fullPath);
-                            textViewInfo = findViewById(R.id.textViewInformant);
-                            cdt = new CountDownTimer(10100, 1000) {
-                                int cd = 10;
-
-                                @Override
-                                public void onTick(long millisUntilFinished) {
-                                    textViewInfo.setText("Recording..." + String.valueOf(cd));
-                                    cd--;
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    stopRecording();
-                                    try {
-                                        parseJobs.uploadAudio(fullPath);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    fab.setImageResource(R.drawable.microphone);
-                                    createRecordField(fullPath, (loggedOnUser + String.valueOf(userRecordCount)));
-                                    userRecordCount++;
-                                    textViewInfo.setText("Finished!");
-                                    //recording = false;
-
-                                }
-                            };
-                            cdt.start();
-                        } else {
-                            stopRecording();
-                            try {
-                                parseJobs.uploadAudio(fullPath);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            cdt.cancel();
-                            textViewInfo.setText("Finished!");
-                            fab.setImageResource(R.drawable.microphone);
-                            createRecordField(fullPath, (loggedOnUser + String.valueOf(userRecordCount)));
-                            userRecordCount++;
-                        }
-                        recording = !recording;
-                    } else {
-                        Toast.makeText(listen.this, "You only have 3 rights!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });
-        //Load files at login Part
-        int recordCount = 0;
-        for (final String filePath : parseJobs.loadRecordPaths(loggedOnUser)) {
-            File f = new File(filePath);
-            if (f.exists() && f.length() > 0) {
-                Log.i("WARNING", "Files found at internal storage");
-                createRecordField(filePath, loggedOnUser + String.valueOf(recordCount));
-                recordCount++;
-            } else {
-                Log.i("WARNING", "File does not exist!");
-                ParseQuery<ParseObject> query = ParseQuery.getQuery("HerenceAudio");
-                query.whereEqualTo("buttonTag", filePath);
-                try {
-                    List<ParseObject> result = query.find();
-                    for (ParseObject object : result) {
-                        ParseFile parseFile = (ParseFile)object.get("record");
-                        FileOutputStream fileOuputStream = null;
-                        fileOuputStream = new FileOutputStream(filePath);
-                        fileOuputStream.write(parseFile.getData());
-                        //fileOuputStream.write(object.getBytes("record"));
-                    }
-                    createRecordField(filePath, loggedOnUser + String.valueOf(recordCount));
-                    recordCount++;
-                } catch (Exception ex) {
-                    Log.i("ERROR_ImportAudioFiles", ex.getMessage());
-                }
-
-            }
-
-
-        }
-
-
- */
     }
 
     public void loadExistingLocalRecords(String filePath){

@@ -13,9 +13,14 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
@@ -45,9 +50,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class listen extends AppCompatActivity implements View.OnClickListener {
 
@@ -70,6 +80,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
     private int recordCount;
     private String record = "Record";
     FirebaseUser firebaseUser = null;
+    private String friendList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,25 +94,31 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
         playing = false;
         idControl = 0;
         pll = findViewById(R.id.linearLayout);
-
+        friendList = "";
 
 
         fileExtension = ".3gp";
 
         if(firebaseUser != null) {
-            loggedOnUser = firebaseUser.getEmail();
-            appFolder = getExternalCacheDir().getAbsolutePath();
-            userFolder = appFolder + File.separator + loggedOnUser;
+            try{
+                loggedOnUser = firebaseUser.getEmail();
+                appFolder = Objects.requireNonNull(getExternalCacheDir()).getAbsolutePath();
+                userFolder = appFolder + File.separator + loggedOnUser;
 
-            File folder = new File(userFolder);
-            boolean success = true;
-            if (!folder.exists()) {
-                success = folder.mkdirs();
-            } else {
-                if (folder.list().length > 0) {
-                    loadExistingLocalRecords(userFolder);
+                File folder = new File(userFolder);
+                if (!folder.exists()) {
+                    boolean folderCreated = folder.mkdirs();
+                    if(folderCreated)
+                        Log.i("Folder is", "Created");
+                } else {
+                    if (Objects.requireNonNull(folder.list()).length > 0) {
+                        loadExistingLocalRecords(userFolder);
+                    }
                 }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
+
         }
 
         fab = findViewById(R.id.fab);
@@ -115,7 +132,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                                new String[]{Manifest.permission.RECORD_AUDIO}, 1);
                    } else {
                        //Make the recordings !!!HERE!!!
-                       fullPath = userFolder + File.separator + record + String.valueOf(userRecordCount) + fileExtension;
+                       fullPath = userFolder + File.separator + record + userRecordCount + fileExtension;
                        if (userRecordCount < maxRecordCount) {
                            if (!recording) {
                                fab.setImageResource(R.drawable.stop96);
@@ -126,7 +143,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
 
                                    @Override
                                    public void onTick(long millisUntilFinished) {
-                                       textViewInfo.setText("Recording..." + String.valueOf(cd));
+                                       textViewInfo.setText(R.string.recording + cd);
                                        cd--;
                                    }
 
@@ -134,9 +151,9 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                                    public void onFinish() {
                                        stopRecording();
                                        fab.setImageResource(R.drawable.microphone);
-                                       createRecordField(fullPath, (record + String.valueOf(userRecordCount)));
+                                       createRecordField(fullPath, (record + userRecordCount));
                                        userRecordCount++;
-                                       textViewInfo.setText("Finished!");
+                                       textViewInfo.setText(R.string.finished);
                                        //recording = false;
 
                                    }
@@ -145,9 +162,9 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                            } else {
                                stopRecording();
                                cdt.cancel();
-                               textViewInfo.setText("Finished!");
+                               textViewInfo.setText(R.string.finished);
                                fab.setImageResource(R.drawable.microphone);
-                               createRecordField(fullPath, (record + String.valueOf(userRecordCount)));
+                               createRecordField(fullPath, (record + userRecordCount));
                                userRecordCount++;
                            }
                            recording = !recording;
@@ -161,11 +178,11 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
 
     public void loadExistingLocalRecords(String filePath){
         File folder = new File(filePath);
-        if (folder.exists() && folder.list().length > 0) {
+        if (folder.exists() && Objects.requireNonNull(folder.list()).length > 0) {
             Log.i("WARNING", "Files found at internal storage");
-            for(String file : folder.list()){
-                String recordPath = filePath + File.separator + record + String.valueOf(recordCount) + fileExtension;
-                createRecordField(recordPath, record + String.valueOf(recordCount));
+            for(String file : Objects.requireNonNull(folder.list())){
+                String recordPath = filePath + File.separator + record + recordCount + fileExtension;
+                createRecordField(recordPath, record + recordCount);
                 recordCount++;
             }
         }
@@ -173,7 +190,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults) {
+                                           @NotNull String[] permissions, @NotNull int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
@@ -181,13 +198,17 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
+                    Log.i("Permission", "Granted!");
 
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                     Toast.makeText(this, "OLMADI BRO", Toast.LENGTH_SHORT).show();
                 }
-                return;
+            }
+            case 0:{
+                Log.i("Permission", "Request Code is different!");
+
             }
 
             // other 'case' lines to check for other
@@ -215,6 +236,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
         if (item.getItemId() == R.id.logout) {
             FirebaseAuth.getInstance().signOut();
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            intent.putExtra("friendList", friendList);
             startActivity(intent);
         } else if (item.getItemId() == R.id.removeall) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -225,9 +247,9 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     File dir = new File(userFolder);
-                    if (dir != null) {
+                    if(dir.length() > 0) {
                         File[] filenames = dir.listFiles();
-                        for (File file : filenames) {
+                        for (File file : Objects.requireNonNull(filenames)) {
                             file.delete();
                         }
                     }
@@ -283,7 +305,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
         playButtonParams.gravity = Gravity.CENTER;
         button = new Button(this);
         button.setLayoutParams(playButtonParams);
-        button.setText("Play ");
+        button.setText(R.string.play);
         //button = new ImageButton(this);
         //button.setImageResource(R.drawable.play96);
         button.setTag(fileAsTag);
@@ -338,14 +360,14 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
         if (id < 100) {
             button = (Button) v;
             if (!playing) {
-                button.setText("Stop");
+                button.setText(R.string.stop);
                 //button.setImageResource(R.drawable.stop48);
                 startPlaying(filePath);
                 disableOtherButtons(id);
                 //disableEnableControls(false, pll);
                 getProgressBarDuration(progressBar, id, filePath);
             } else {
-                button.setText("Play");
+                button.setText(R.string.play);
                 //button.setImageResource(R.drawable.play96);
                 stopPlaying();
                 enableOtherButtons(id);
@@ -358,7 +380,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
             }
             playing = !playing;
         }
-        else if (id >= 100){
+        else {
             shareButton = (ImageButton) v;
             Log.i("ShareButton", String.valueOf(v.getId()));
             Intent intent = new Intent(getApplicationContext(), FriendList.class);
@@ -381,7 +403,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
     private void disableOtherButtons(int id) {
         for (int i = 0; i < pll.getChildCount(); i++) {
             LinearLayout ll = (LinearLayout) pll.getChildAt(i);
-            View child = null;
+            View child;
             if (i != id - 1) {
                 for (int j = 0; j < ll.getChildCount(); j++) {
                     child = ll.getChildAt(j);
@@ -394,7 +416,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
     private void enableOtherButtons(int id) {
         for (int i = 0; i < pll.getChildCount(); i++) {
             LinearLayout ll = (LinearLayout) pll.getChildAt(i);
-            View child = null;
+            View child;
             if (i != id - 1) {
                 for (int j = 0; j < ll.getChildCount(); j++) {
                     child = ll.getChildAt(j);
@@ -426,7 +448,7 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
                 //enableOtherButtons(id);
                 disableEnableControls(true, pll);
                 button = findViewById(id);
-                button.setText("Play");
+                button.setText(R.string.play);
                 //button.setImageResource(R.drawable.play96);
             }
         };
@@ -475,4 +497,11 @@ public class listen extends AppCompatActivity implements View.OnClickListener {
         //playing = false;
     }
 
+
+    public ArrayList<String> stringToArray (String value){
+        ArrayList<String> result = new ArrayList<>();
+        String replace = value.replaceAll("^\\[|]$", "");
+        Collections.addAll(result, replace.split(","));
+        return result;
+    }
 }

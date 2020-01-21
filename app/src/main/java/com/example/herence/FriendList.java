@@ -6,33 +6,23 @@ import android.os.Bundle;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.parse.ParseException;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompatSideChannelService;
 
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import ir.mirrajabi.searchdialog.SimpleSearchDialogCompat;
 import ir.mirrajabi.searchdialog.core.BaseSearchDialogCompat;
@@ -42,13 +32,12 @@ public class FriendList extends AppCompatActivity {
 
     private ListView friendList = null;
     private ArrayList<String> friendListArray = null;
-    private ArrayAdapter adapter = null;
+    private ArrayAdapter<String> adapter = null;
     private ArrayList<SearchModel> userList = null;
     private boolean hasRecord = false;
     private String objectID = "";
-    private String currentUser = null;
-    private DatabaseReference mDatabase;
-
+    private String contacts = "";
+    private String json;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,32 +48,15 @@ public class FriendList extends AppCompatActivity {
         friendList = findViewById(R.id.listViewFriendList);
         friendListArray = new ArrayList<>();
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        db.collection("users")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d("DOCUMENT_ID", document.getId() + " => " + document.getData() + " " + document.get("firstname"));
-                            }
-                        } else {
-                            Log.w("DATABASE_ERROR", "Error getting documents.", task.getException());
-                        }
-                    }
-                });
-
-        if(getIntent().getExtras() != null){
-            hasRecord = true;
-            Intent intent = getIntent();
-            objectID = intent.getStringExtra("objectID");
-        }
+        readContactsData(new MyCallback() {
+            @Override
+            public void onCallback(ArrayList<String> friendListA) {
+                adapter = new ArrayAdapter<>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item, friendListA);
+                friendList.setAdapter(adapter);
+            }
+        });
 
         userList = new ArrayList<>();
-
-        refreshFriendList();
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setImageResource(R.drawable.addfriend);
@@ -137,10 +109,39 @@ public class FriendList extends AppCompatActivity {
         }
     }
 
-    public void refreshFriendList(){
-        adapter = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, friendListArray);
-        friendList.setAdapter(adapter);
+    public void refreshFriendList(ArrayList<String> arrayList, ListView listView){
+
     }
 
+    public ArrayList<String> stringToArray (String value){
+        String replace;
+        ArrayList<String> result = new ArrayList<>();
+        replace = value.replaceAll("^\\[|]$", "");
+        for(String s : replace.split(",")){
+            result.add(s.trim());
+        }
+        return result;
+    }
 
+    public interface MyCallback {
+        void onCallback(ArrayList<String> friendList);
+    }
+
+    public void readContactsData(final MyCallback myCallback) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            ArrayList<String> attractionsList = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                                attractionsList= stringToArray(Objects.requireNonNull(document.get("contacts")).toString());
+                            }
+                            myCallback.onCallback(attractionsList);
+                        }
+                    }
+        });
+    }
 }
